@@ -5,16 +5,17 @@ a ros package to handle basic depth sensor operation such as
 
 ![Alt Text](https://media.giphy.com/media/y30CmdlpwmXLxyXlEz/giphy.gif)
 ## dependencies
-cv2
-numpy
-pyrealsense2
-and possibly librealsense
+- cv2
+- numpy
+- pyrealsense2
+- librealsense
 
 install the dependencies by:
 
-'''
+```
 pip install pyrealsense2
-'''
+
+```
 
 ## Setup
 
@@ -23,9 +24,9 @@ pip install pyrealsense2
 3. Build the ros package using catkin build / catkin_make
 4. Run the package by:
 
-'''
+```
 rosrun depth_ros_python node_depth_py.py
 
-'''
+```
 
 The ros node will publish a topic called "processed_depth_images"
