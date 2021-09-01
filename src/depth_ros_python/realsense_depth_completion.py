@@ -41,13 +41,14 @@ class ImageListener:
             blur_type = 'gaussian'
             final_depths = depth_map_utils.fill_in_fast(cv_image_resized, extrapolate=extrapolate, blur_type=blur_type)
 
-            final_depths = self.bridge.resize(final_depths, (64, 64))
+            float_depths = self.bridge.resize(final_depths, (64, 64)).astype(np.float32)
+            float_depths = np.clip(float_depths/15000., 0, 1)
 
             cv_image_msg = msg_Image()
             cv_image_msg = self.bridge.cv2_to_imgmsg(final_depths, encoding="16UC1")
 
             image_array = Float32MultiArray()
-            image_array.data = list(final_depths.reshape(4096))
+            image_array.data = list(float_depths.reshape(4096))
         
             self.pub_array_image.publish(image_array)
             self.pub_image.publish(cv_image_msg)
