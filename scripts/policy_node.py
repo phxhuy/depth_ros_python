@@ -79,8 +79,8 @@ class PolicyNode():
             current_yaw += 0.5 * np.pi
             next_pose = PoseStamped()
             next_pose.header.frame_id = "map"
-            next_pose.pose.position.y = self.current_pose.position.y - action[0]*np.cos(current_yaw) + action[1]*np.sin(current_yaw)
-            next_pose.pose.position.x = self.current_pose.position.x + action[0]*np.sin(current_yaw) + action[1]*np.cos(current_yaw)
+            next_pose.pose.position.y = self.current_pose.position.y + self.step_length * (- action[0]*np.cos(current_yaw) + action[1]*np.sin(current_yaw))
+            next_pose.pose.position.x = self.current_pose.position.x + self.step_length * (action[0]*np.sin(current_yaw) + action[1]*np.cos(current_yaw))
             next_pose.pose.position.z = self.global_traj_z
             next_pose.pose.orientation = euler_to_quaternion(current_yaw + action[2] * 22.5 / 180 * np.pi - np.pi/2)
             self.pub_action.publish(next_pose)
