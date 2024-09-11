@@ -4,7 +4,10 @@ from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Image as msg_Image
 from sensor_msgs.msg import CameraInfo
 # from std_msgs.msg import Float32MultiArray
-from cv_bridge import CvBridge, CvBridgeError
+# from cv_bridge import CvBridge, CvBridgeError
+
+import ros_numpy
+
 import sys
 import os
 import numpy as np
@@ -21,30 +24,32 @@ class ImageListener:
         # self.pub_array_image = rospy.Publisher('/processed_depth_images_array', Float32MultiArray, queue_size=10)
         self.pub_image = rospy.Publisher('/processed_depth_images', msg_Image, queue_size=10)
         # self.pub_pose = rospy.Publisher('/depth_image_aligned_pose', PoseStamped, queue_size=10)
-        self.bridge = CvBridge()
+        # self.bridge = CvBridge()
         self.sub = rospy.Subscriber(depth_image_topic, msg_Image, self.imageDepthCallback, queue_size=1)
         # rospy.Subscriber("/mavros/local_position/pose", PoseStamped, self.pose_callback)
         # self.current_pose = PoseStamped()
-        self.skip_counter = 0
+        self.skip_counter = 1
 
     def imageDepthCallback(self, data):
         if self.skip_counter >= 1:
-            self.skip_counter = 0
+            # self.skip_counter = 0
             try:
-                print("image delay: ", (rospy.Time.now() - data.header.stamp)/1000000)
+                print "image delay: ", (rospy.Time.now() - data.header.stamp)/1000000
                 start_t = time.time()
 
                 # pose = copy.copy(self.current_pose)
-                cv_image = self.bridge.imgmsg_to_cv2(data, data.encoding)
+                # cv_image = self.bridge.imgmsg_to_cv2(data, data.encoding)
+                cv_image_resized = ros_numpy.numpify(data)
+                print cv_image_resized.shape
 
                 # if cv_image.shape[1] is not 640:
                 #     mid_point = cv_image.shape[1]/2
                 #     cv_image = cv_image[:, mid_point-320:mid_point+320]
 
-                cv_image_resized = np.ones([640, 640]).astype(np.uint16)
-                cv_image_resized = cv_image_resized * 15000  #cv_image[cv_image > 0].max()
+                # cv_image_resized = np.ones([640, 640]).astype(np.uint16)
+                # cv_image_resized = cv_image_resized * 15000  #cv_image[cv_image > 0].max()
 
-                cv_image_resized[80:560, :] = cv_image
+                # cv_image_resized[80:560, :] = cv_image
 
                 # for image size 424x240
                 # cv_image_resized = np.ones([424, 424]).astype(np.uint16)
@@ -70,11 +75,13 @@ class ImageListener:
                 # plt.imshow(final_depths, cmap="gray")
                 # plt.show(block=False)
 
-                float_image = cv2.resize(final_depths[80:360, :], (64, 64))
-
+                # float_image = cv2.resize(final_depths[80:360, :], (64, 64))
+                float_image = cv2.resize(final_depths, (640, 480))
 
                 cv_image_msg = msg_Image()
-                cv_image_msg = self.bridge.cv2_to_imgmsg(float_image, encoding="16UC1")
+                # cv_image_msg = self.bridge.cv2_to_imgmsg(float_image, encoding="16UC1")
+                
+                cv_image_msg = ros_numpy.msgify(msg_Image, float_image, encoding="16UC1")
 
                 cv_image_msg.header.stamp.secs = data.header.stamp.secs
                 cv_image_msg.header.stamp.nsecs = data.header.stamp.nsecs
@@ -87,11 +94,10 @@ class ImageListener:
                 print("time elapsed: ", end_t - start_t)
 
 
-            except CvBridgeError as e:
+            except ValueError as e:
                 print(e)
                 return
-            except ValueError as e:
-                return
+
         else:
             self.skip_counter += 1
             print("skipped one image")
