@@ -17,6 +17,12 @@ pip install pyrealsense2
 
 ```
 
+install ros-numpy
+
+```
+sudo apt-get install ros-noetic-ros-numpy
+```
+
 ## Setup
 
 1. Clone the package
